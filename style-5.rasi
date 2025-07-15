@@ -1,0 +1,93 @@
+/**
+ *
+ * Author : Aditya Shakya (adi1090x)
+ * Github : @adi1090x
+ * 
+ * Rofi Theme File
+ * Rofi Version: 1.7.3
+ **/
+
+/*****----- Configuration -----*****/
+configuration {
+    show-icons:                 false;
+}
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "Atkinson Hyperlegible 10";
+    background:                  #11092D;
+    background-alt:              #281657;
+    foreground:                  #FFFFFF;
+    selected:                    #DF5296;
+    active:                      #6E77FF;
+    urgent:                      #8E3596;
+}
+
+/*
+USE_ICON=NO
+*/
+window {
+    transparency: "real";
+    location: center;
+    anchor: center;
+    fullscreen: false;
+
+    width: 1200px;   /** FIX: constrain width **/
+    height: 800px;   /** FIX: constrain height **/
+    border-radius: 20px;
+    border: 0px solid;
+    border-color: @selected;
+    background-color: @background;
+}
+
+mainbox {
+    enabled: true;
+    spacing: 20px;
+    padding: 20px;
+    background-color:            transparent;
+    orientation: horizontal;  /** FIX: make horizontal for 2 columns **/
+    children: [ "leftcolumn", "imagebox" ]; /** two columns **/
+}
+
+/* Left Column: prompt + message stacked */
+leftcolumn {
+    enabled: true;
+    spacing: 20px;
+    orientation: vertical;  /** stacked **/
+    children: [ "prompt", "message" ];
+    width: 400px; /** 1200 total - 800 image = 400 left **/
+    background-color: transparent;
+}
+
+/* Image box: right column */
+imagebox {
+    border-radius: 20px;
+    background-color: transparent;
+    background-image: url("/home/steven/.cache/yadshow/nowplaying.album.png", height);
+    width: 800px;   /** fix max size **/
+    height: 800px;  /** fix max size **/
+}
+
+prompt {
+    enabled: true;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: @active;
+    text-color: @background;
+}
+ 
+#textbox {
+    enabled: true;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: @active;
+    text-color: @background;
+}
+
+message {
+    enabled: true;
+    padding: 10px;
+    border-radius: 20px;
+    background-color: transparent;
+    text-color: @foreground;
+}
