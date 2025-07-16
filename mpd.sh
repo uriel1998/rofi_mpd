@@ -81,26 +81,14 @@ dedupe_mpd_queue() {
   echo "Removed duplicates. New queue length: ${#new_playlist[@]}"
 } 
 
+# input filepath, title, artist, album
 function get_cover_image (){
-
-# Checking to see if currently playing/paused, otherwise exiting.
-# checks local players like audacity first, since it's always a local player, as opposed to MPD
-    IF_URL=0
-    if [ ! -f "${SONGFILE}" ] && [ "${IF_URL}" == "0" ];then
-        # checking if MPD_HOST is set or exists in .bashrc
-        # if neither is set, will just go with defaults (which will fail if 
-        # password is set.) 
-        if [ "$MPD_HOST" == "" ];then
-            export MPD_HOST=$(cat ${HOME}/.bashrc | grep MPD_HOST | awk -F '=' '{print $2}')
-        fi
-        status=$(mpc --host "$MPD_HOST" | grep -c -e "\[")
-        if [ $status -lt 1 ];then
-            echo "Not playing or paused"            
-        else
-            SONGFILE="${MPD_MUSIC_BASE}"/$(mpc --host "$MPD_HOST" current --format %file%)
-            SONGSTRING=$(mpc --host "$MPD_HOST" current --format "%artist% - %album% - %title%")
-        fi
-    fi
+    local filepath="${1}"
+    local title="${2}"
+    local artist="${3}"
+    local album="${4}"
+    SONGFILE="${MPD_MUSIC_BASE}/${filepath}"
+    SONGSTRING=$(echo "${artist} - ${album} - ${title}")
     # taking out any "feat etc in parentheses"
     SONGSTRING=$(echo "${SONGSTRING}" | sed -e 's/([^)]*)//g' )    
     SONGDIR=$(dirname "${SONGFILE}")
@@ -142,11 +130,10 @@ function get_cover_image (){
         if [ "$COVERFILE" == "" ];then
             COVERFILE=$(printf "%s\n" "$HOME/.config/rofi/images/j.jpg" "$HOME/.config/rofi/images/b.png" "$HOME/.config/rofi/images/a.png" | shuf -n1)
         fi
-        
         convert "${COVERFILE}" -resize "900x900" "${ROFI_CACHE}/nowplaying.album.png"
-        else
-            SAME_SONG=1
-        fi    
+    else
+        SAME_SONG=1
+    fi    
  }
  
  now_album(){
@@ -205,8 +192,6 @@ show_tools() {
     theme="$type/$style"
     
     prompt=$(cat "${ROFI_CACHE}/songinfo")
-    mesg=$(cat "${ROFI_CACHE}/nowplaying.lyrics.md")
-        
     choice=$(echo -e "$option_sub1\n$option_sub2\n$option_sub3\n$option_sub4\n$option_sub5" | \
         rofi -theme-str "listview {columns: 2; lines: 1;}" \
                 -theme-str 'textbox-prompt-colon {str: "";}' \
@@ -245,45 +230,34 @@ show_tools() {
 }
 
 show_info() {
-    
-    
     style='style-5.rasi'
     theme="$type/$style"
-#TODO : GET THIS LAYOUT RIGHT.    
-    prompt=$(cat "${ROFI_CACHE}/songinfo")
-    #mesg=$(cat "${ROFI_CACHE}/nowplaying.lyrics.md" | head -n 37)
-#     cat "${ROFI_CACHE}/nowplaying.lyrics.md" | head -n 37 |   rofi -theme-str "listview {columns: 1; lines: 1;}" \
-                -theme-str 'textbox-prompt-colon {str: "";}' \
-                -dmenu \
-                -p "${prompt}" \
-                -mesg "${mesg}" \
-                ${active} ${urgent} \
-                -markup-rows \
-                -theme ${theme}
-                
-head -n 37 "${ROFI_CACHE}/nowplaying.lyrics.md" | \
-rofi -theme-str "listview {columns: 1; lines: 37;}" \
-     -theme-str 'textbox-prompt-colon {str: "";}' \
-     -dmenu \
-     -p "${prompt}" \
-     ${active} ${urgent} \
-     -markup-rows \
-     -theme ${theme}
-     
-                     
+    prompt=$(cat "${ROFI_CACHE}/songinfo")   
+    head -n 37 "${ROFI_CACHE}/nowplaying.lyrics.md" | \
+    rofi -theme-str "listview {columns: 1; lines: 37;}" \
+        -theme-str 'textbox-prompt-colon {str: "";}' \
+        -dmenu \
+        -p "${prompt}" \
+        ${active} ${urgent} \
+        -markup-rows \
+        -theme ${theme}
     # so it takes you "back" when done
     ( $HOME/.config/rofi/applets/bin/mpd.sh ) &
     exit
 }
 
 # Theme Elements
-status="`mpc --host "$MPD_HOST" status`"
+status=$(mpc --host "$MPD_HOST" status  --format "%artist%§%album%§%title%§%file%" | sed 's/&/and/g')
+    myartist=$(echo "$status" | head -n1 | awk -F '§' '{print $1}')
+    myalbum=$(echo "$status" | head -n1 | awk -F '§' '{print $2}')
+    mytitle=$(echo "$status" | head -n1 | awk -F '§' '{print $3}')
+    myfile=$(echo "$status" | head -n1 | awk -F '§' '{print $4}')
 if [[ -z "$status" ]]; then
         prompt='Offline'
         mesg="MPD is Offline"
 else
-        prompt="`mpc --host "$MPD_HOST" -f "%title%" current | sed 's/&/and/g'`"
-        mesg="`mpc --host "$MPD_HOST" -f "by %artist% on %album%" current | sed 's/&/and/g'`"
+        prompt=$(echo "${mytitle}")
+        mesg=$(echo "by ${myartist} on ${myalbum}")
 fi
 
 if [[ ( "$theme" == *'type-1'* ) || ( "$theme" == *'type-3'* ) || ( "$theme" == *'type-5'* ) ]]; then
@@ -336,7 +310,6 @@ fi
 active=''
 urgent=''
 # Liked
-myfile=$(mpc --host "$MPD_HOST" current --format %file%)                
 liked=$(mpc --host "$MPD_HOST" sticker "${myfile}" get like 2>/dev/null| awk -F '=' '{print $2}')  
 if [[ "${liked}" == "2" ]];then
     active="-a 7"
@@ -378,7 +351,7 @@ else
     option_12=" Parsing Error"
 fi
 # getting, updating cover image
-get_cover_image
+get_cover_image "${myfile}" "${mytitle}" "${myartist}" "${myalbum}"
 
 
 
@@ -455,6 +428,8 @@ run_cmd() {
     exit
 
 }
+
+
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
@@ -485,13 +460,13 @@ case ${chosen} in
     $option_9)
                 run_cmd --opt9
         ;;                      
-$option_10)
+    $option_10)
                 run_cmd --opt10
         ;;
-$option_11)
+    $option_11)
                 run_cmd --opt11
         ;;
-$option_12)
+    $option_12)
                 run_cmd --opt12
         ;;
 esac

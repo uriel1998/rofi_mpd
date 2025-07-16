@@ -19,9 +19,13 @@ I've incorporated a lot of my older work into here; for example, if you use `yad
 * Outputs added as a toggleable button
 * Local playing of MPD streamed output
 * Info window with lyrics (if present, up to 37 lines; default lyrics file included)
-* Tools button showing various tools you can use, including invoking `puddletag` 
+* Tools button showing various tools you can use, including invoking [puddletag](https://docs.puddletag.net/)
 on the currently playing track, removing duplicates from the current playqueue, 
 and replacing the queue with the currently playing artist, album, or genre.
+
+This does **NOT** retrieve any of this information from anywhere besides MPD and your 
+music directory. It uses either `cover.jpg` or `folder.jpg` for the image, and .txt or .lrc 
+for lyrics. It does *not* extract them from the MP3 tags.
 
 ## Things you'll need
 
@@ -70,3 +74,5 @@ export MPD_MUSIC_BASE="/home/USERNAME/Music"
 *Note* Technically you do not have to export them, it's a simple grep match, not 
 reading of environment variables. I export them because I use the same things among 
 different scripts.
+
+*Note* If it seems slow, try executing it via `bash ./mpd.sh` instead of just `./mpd.sh`.
