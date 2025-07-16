@@ -17,6 +17,8 @@ SONGSTRING=""
 SONGFILE=""
 SONGDIR=""
 COVERFILE=""
+STREAMURL="https://stevesaus.xyz/mpd.mp3"
+OUTPUT_NAME="my_pipe"
 MPD_MUSIC_BASE="${HOME}/Music"
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 cd "${SCRIPT_DIR}"
@@ -43,7 +45,7 @@ fi
 
 dedupe_mpd_queue() {
   # Get the current playlist with position and file
-  mapfile -t playlist < <(mpc -f '%position%:%file%' playlist)
+  mapfile -t playlist < <(mpc --host "$MPD_HOST"  -f '%position%:%file%' playlist)
 
   declare -A seen
   declare -a new_playlist
@@ -59,9 +61,9 @@ dedupe_mpd_queue() {
   done
 
   # Save the deduplicated playlist to a temp playlist
-  mpc clear
+  mpc --host "$MPD_HOST"  clear
   for track in "${new_playlist[@]}"; do
-    mpc add "$track"
+    mpc --host "$MPD_HOST"  add "$track"
   done
 
   echo "Removed duplicates. New queue length: ${#new_playlist[@]}"
@@ -219,7 +221,7 @@ show_tools() {
                 now_genre
         ;;
     $option_sub5)
-                nowtrack=$(/home/steven/bin/edit_current_mp3tags.sh);QT_STYLE_OVERRIDE=qt5ct-style puddletag "${nowtrack}"
+                nowtrack=$("${HOME}"/.config/rofi/applets/bin/edit_current_mp3tags.sh);QT_STYLE_OVERRIDE=qt5ct-style puddletag "${nowtrack}"
         ;;
     esac
     
@@ -237,8 +239,8 @@ show_info() {
     theme="$type/$style"
 #TODO : GET THIS LAYOUT RIGHT.    
     prompt=$(cat "${ROFI_CACHE}/songinfo")
-    mesg=$(cat "${ROFI_CACHE}/nowplaying.lyrics.md")
-        rofi -theme-str "listview {columns: 1; lines: 1;}" \
+    #mesg=$(cat "${ROFI_CACHE}/nowplaying.lyrics.md" | head -n 37)
+#     cat "${ROFI_CACHE}/nowplaying.lyrics.md" | head -n 37 |   rofi -theme-str "listview {columns: 1; lines: 1;}" \
                 -theme-str 'textbox-prompt-colon {str: "";}' \
                 -dmenu \
                 -p "${prompt}" \
@@ -246,19 +248,30 @@ show_info() {
                 ${active} ${urgent} \
                 -markup-rows \
                 -theme ${theme}
+                
+head -n 37 "${ROFI_CACHE}/nowplaying.lyrics.md" | \
+rofi -theme-str "listview {columns: 1; lines: 37;}" \
+     -theme-str 'textbox-prompt-colon {str: "";}' \
+     -dmenu \
+     -p "${prompt}" \
+     ${active} ${urgent} \
+     -markup-rows \
+     -theme ${theme}
+     
+                     
     # so it takes you "back" when done
     ( $HOME/.config/rofi/applets/bin/mpd.sh ) &
     exit
 }
 
 # Theme Elements
-status="`mpc status`"
+status="`mpc --host "$MPD_HOST" status`"
 if [[ -z "$status" ]]; then
         prompt='Offline'
         mesg="MPD is Offline"
 else
-        prompt="`mpc -f "%title%" current | sed 's/&/and/g'`"
-        mesg="`mpc -f "by %artist% on %album%" current | sed 's/&/and/g'`"
+        prompt="`mpc --host "$MPD_HOST" -f "%title%" current | sed 's/&/and/g'`"
+        mesg="`mpc --host "$MPD_HOST" -f "by %artist% on %album%" current | sed 's/&/and/g'`"
 fi
 
 if [[ ( "$theme" == *'type-1'* ) || ( "$theme" == *'type-3'* ) || ( "$theme" == *'type-5'* ) ]]; then
@@ -299,7 +312,12 @@ else
         option_4=""
         option_5=""
         option_6=""
-        option_7=""
+        option_7="⚒️"
+        option_8="👍"
+        option_9="📜"
+        option_10="📡"
+        option_11="📻"
+        option_12="🗑️"
 fi
 
 # Toggle Actions
@@ -307,7 +325,7 @@ active=''
 urgent=''
 # Liked
 myfile=$(mpc --host "$MPD_HOST" current --format %file%)                
-liked=$(mpc sticker "${myfile}" get like 2>/dev/null| awk -F '=' '{print $2}')  
+liked=$(mpc --host "$MPD_HOST" sticker "${myfile}" get like 2>/dev/null| awk -F '=' '{print $2}')  
 if [[ "${liked}" == "2" ]];then
     active="-a 7"
 fi
@@ -327,15 +345,18 @@ elif [[ ${status} == *"random: off"* ]]; then
 else
     option_6=" Parsing Error"
 fi
+
 # Snapcast
-    if [ $(mpc outputs | grep -c "Output 2 (my_pipe) is enabled") -eq 1 ];then
-            [ -n "$active" ] && active+=",9" || active="-a 9"
-    fi
+if [ $(mpc --host "$MPD_HOST" outputs | grep -c "Output 2 (${OUTPUT_NAME}) is enabled") -eq 1 ];then
+        [ -n "$active" ] && active+=",9" || active="-a 9"
+fi
+
 # radio
-mplayer_PID=$(ps aux | grep -v "grep" | grep -v "psx2" | grep -e "play https://stevesaus.xyz/mpd.mp3" | awk '{ print $2 }')
+mplayer_PID=$(ps aux | grep -v "grep" | grep -e "play ${STREAMURL}" | awk '{ print $2 }')
 if [[ $mplayer_PID -gt 0 ]];then 
     [ -n "$active" ] && active+=",10" || active="-a 10"
 fi
+
 # Consume
 if [[ ${status} == *"consume: on"* ]]; then
     [ -n "$active" ] && active+=",11" || active="-a 11"
@@ -369,36 +390,52 @@ run_rofi() {
 # Execute Command
 run_cmd() {
         if [[ "$1" == '--opt1' ]]; then
-                mpc -q toggle && notify-send -u low -t 1000 " `mpc current`"
+                mpc --host "$MPD_HOST"  -q toggle && notify-send -u low -t 1000 " `mpc --host "$MPD_HOST"  current`"
         elif [[ "$1" == '--opt2' ]]; then
-                mpc -q stop
+                mpc --host "$MPD_HOST"  -q stop
         elif [[ "$1" == '--opt3' ]]; then
-                mpc -q prev && notify-send -u low -t 1000 " `mpc current`"
+                mpc --host "$MPD_HOST"  -q prev && notify-send -u low -t 1000 " `mpc --host "$MPD_HOST"  current`"
         elif [[ "$1" == '--opt4' ]]; then
-                mpc -q next && notify-send -u low -t 1000 " `mpc current`"
+                mpc --host "$MPD_HOST"  -q next && notify-send -u low -t 1000 " `mpc --host "$MPD_HOST"  current`"
         elif [[ "$1" == '--opt5' ]]; then
-                mpc -q repeat
+                mpc --host "$MPD_HOST"  -q repeat
         elif [[ "$1" == '--opt6' ]]; then
-                mpc -q random
+                mpc --host "$MPD_HOST"  -q random
         elif [[ "$1" == '--opt7' ]]; then
                 show_tools
         elif [[ "$1" == '--opt8' ]]; then
                 myfile=$(mpc --host "$MPD_HOST" current --format %file%)
-                liked=$(mpc sticker "${myfile}" get like 2>/dev/null| awk -F '=' '{print $2}') 
+                liked=$(mpc --host "$MPD_HOST"  sticker "${myfile}" get like 2>/dev/null| awk -F '=' '{print $2}') 
                 # We are using myMPD's version of "like"
                 if [ "$liked" == "2" ];then
-                    mpc sticker "${myfile}" set like 1
+                    mpc --host "$MPD_HOST"  sticker "${myfile}" set like 1
                 else
-                    mpc sticker "${myfile}" set like 2
+                    mpc --host "$MPD_HOST"  sticker "${myfile}" set like 2
                 fi
         elif [[ "$1" == '--opt9' ]]; then
                 show_info
         elif [[ "$1" == '--opt10' ]]; then
-                /home/steven/bin/openbox/switch_mpd_outputs.sh
+                enabled=$(mpc --host "$MPD_HOST" outputs | grep "${OUTPUT_NAME}" | grep -c enabled)
+                if [ $enabled -gt 0 ];then
+                    mpc --host "$MPD_HOST" disable "${OUTPUT_NAME}"
+                else
+                    mpc --host "$MPD_HOST"   enable "${OUTPUT_NAME}"
+                fi
         elif [[ "$1" == '--opt11' ]]; then
-                /home/steven/bin/homestream_toggle.sh
+                mplayer_PID=$(ps aux | grep -v "grep" | grep -e "play https://.*/mpd.mp3" | awk '{ print $2 }')
+
+                if [[ $mplayer_PID -gt 0 ]];then 
+                    notify-send --icon radio "Ending stream"
+                    kill $mplayer_PID
+                    # this is needed so it doesn't accidentally say it's up when it's just been switched off
+                    sleep 1
+                else
+                    notify-send --icon radio "Beginning stream"
+                    nohup /usr/bin/play "${STREAMURL}" >/dev/null 2>&1 &
+                fi
+                
         elif [[ "$1" == '--opt12' ]]; then
-                mpc -q consume
+                mpc --host "$MPD_HOST"  -q consume
         fi
         
     # so it takes you "back" when done

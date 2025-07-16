@@ -52,9 +52,10 @@ mainbox {
 /* Left Column: prompt + message stacked */
 leftcolumn {
     enabled: true;
+    expand: true;
     spacing: 20px;
     orientation: vertical;  /** stacked **/
-    children: [ "prompt", "message" ];
+    children: [ "prompt", "listview" ];
     width: 400px; /** 1200 total - 800 image = 400 left **/
     background-color: transparent;
 }
@@ -80,14 +81,33 @@ prompt {
     enabled: true;
     padding: 10px;
     border-radius: 15px;
+    padding: 10px;
     background-color: @active;
     text-color: @background;
 }
 
-message {
+listview {
     enabled: true;
     padding: 10px;
     border-radius: 20px;
-    background-color: transparent;
-    text-color: @foreground;
+    background-color: @active;
+    text-color: @background;
+    }
+
+dummy{
+    padding: 10px;
+    background-color:            transparent;
 }
+element {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  @background;
+}
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    cursor:                      inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.0;
+}
+
