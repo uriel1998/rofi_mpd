@@ -1,3 +1,7 @@
+# rofi_mpd
+
+![rofi_mpd](https://github.com/uriel1998/rofi_mpd/raw/master/rofi_mpd.png)
+
 This is an enhanced drop in replacement for the `mpd` applet from 
 
 https://github.com/adi1090x/rofi
