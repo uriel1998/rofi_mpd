@@ -359,14 +359,7 @@ else
 fi
 
 # Snapcast
-count=$(mpc --host "$MPD_HOST" outputs | grep -c "Output 2 (${OUTPUT_NAME}) is enabled")
-#mpc --host "$MPD_HOST" outputs 
-echo "${OUTPUT_NAME}" 
-#OUTPUT_NAME="my_pipe"
-mpc --host "$MPD_HOST" outputs | grep "${OUTPUT_NAME}"
-
-exit
-if [ $(mpc --host "$MPD_HOST" outputs | grep -c "Output 2 (${OUTPUT_NAME}) is enabled") -eq 1 ];then
+if [ $(mpc --host "$MPD_HOST" outputs | grep "${OUTPUT_NAME}" | grep -c "is enabled") -eq 1 ];then
         [ -n "$active" ] && active+=",9" || active="-a 9"
 fi
 
