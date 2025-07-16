@@ -18,7 +18,7 @@ I've incorporated a lot of my older work into here; for example, if you use `yad
 * Consume added as a toggleable button
 * Outputs added as a toggleable button
 * Local playing of MPD streamed output
-* Info window with lyrics (if present; default lyrics file included)
+* Info window with lyrics (if present, up to 37 lines; default lyrics file included)
 * Tools button showing various tools you can use, including invoking `puddletag` 
 on the currently playing track, removing duplicates from the current playqueue, 
 and replacing the queue with the currently playing artist, album, or genre.

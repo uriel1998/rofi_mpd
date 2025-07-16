@@ -26,16 +26,16 @@ cd "${SCRIPT_DIR}"
 # if neither is set, will just go with defaults (which will fail if 
 # password is set.) 
 if [ "$MPD_HOST" == "" ];then
-    export MPD_HOST=$(cat ${HOME}/.bashrc | grep MPD_HOST | awk -F '=' '{print $2}')
+    export MPD_HOST=$(cat ${HOME}/.bashrc | grep MPD_HOST | awk -F '=' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )
 fi
 if [ "$STREAMURL" == "" ];then
-    export STREAMURL=$(cat ${HOME}/.bashrc | grep STREAMURL | awk -F '=' '{print $2}')
+    export STREAMURL=$(cat ${HOME}/.bashrc | grep STREAMURL | awk -F '"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 fi
 if [ "$OUTPUT_NAME" == "" ];then
-    export OUTPUT_NAME=$(cat ${HOME}/.bashrc | grep OUTPUT_NAME | awk -F '=' '{print $2}')
+    export OUTPUT_NAME=$(cat ${HOME}/.bashrc | grep OUTPUT_NAME | awk -F '"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 fi
 if [ "$MPD_MUSIC_BASE" == "" ];then
-    export MPD_MUSIC_BASE=$(cat ${HOME}/.bashrc | grep MPD_MUSIC_BASE | awk -F '=' '{print $2}')
+    export MPD_MUSIC_BASE=$(cat ${HOME}/.bashrc | grep MPD_MUSIC_BASE | awk -F '"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     if [ "$MPD_MUSIC_BASE" == "" ];then
         MPD_MUSIC_BASE="${HOME}/Music"
     fi
@@ -359,6 +359,13 @@ else
 fi
 
 # Snapcast
+count=$(mpc --host "$MPD_HOST" outputs | grep -c "Output 2 (${OUTPUT_NAME}) is enabled")
+#mpc --host "$MPD_HOST" outputs 
+echo "${OUTPUT_NAME}" 
+#OUTPUT_NAME="my_pipe"
+mpc --host "$MPD_HOST" outputs | grep "${OUTPUT_NAME}"
+
+exit
 if [ $(mpc --host "$MPD_HOST" outputs | grep -c "Output 2 (${OUTPUT_NAME}) is enabled") -eq 1 ];then
         [ -n "$active" ] && active+=",9" || active="-a 9"
 fi
