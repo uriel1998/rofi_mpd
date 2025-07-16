@@ -45,9 +45,10 @@ cp ./default_lyrics.md "$HOME/.config/rofi/applets/shared"
 
 ## Configuration
 
-To your `.bashrc` add (if it does not already exist):
+Add to your `.bashrc` (if it does not already exist):
+
 `export MPD_HOST=PASSWORD@HOST`
- 
+
 I run snapserver on a second output named `my_pipe`.  Alter `OUTPUT_NAME` at the 
 top of the script to match the name of the output you wish to toggle.
 
@@ -56,3 +57,16 @@ before) playing a stream from my MPD server.  Alter `STREAMURL` at the top of th
 script to add the url of your stream.
 
 If your MPD music base is *not* "${HOME}/Music", change it at the top of the script.
+
+If you'd rather not alter the script, you can also define these variables in your .bashrc if you like, e.g.:
+
+
+```
+export STREAMURL="https://example.com/mpd.mp3"
+export OUTPUT_NAME="second_output" 
+export MPD_MUSIC_BASE="/home/USERNAME/Music"
+```
+
+*Note* Technically you do not have to export them, it's a simple grep match, not 
+reading of environment variables. I export them because I use the same things among 
+different scripts.

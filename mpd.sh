@@ -17,8 +17,8 @@ SONGSTRING=""
 SONGFILE=""
 SONGDIR=""
 COVERFILE=""
-STREAMURL="https://stevesaus.xyz/mpd.mp3"
-OUTPUT_NAME="my_pipe"
+STREAMURL=""
+OUTPUT_NAME=""
 MPD_MUSIC_BASE="${HOME}/Music"
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 cd "${SCRIPT_DIR}"
@@ -27,6 +27,18 @@ cd "${SCRIPT_DIR}"
 # password is set.) 
 if [ "$MPD_HOST" == "" ];then
     export MPD_HOST=$(cat ${HOME}/.bashrc | grep MPD_HOST | awk -F '=' '{print $2}')
+fi
+if [ "$STREAMURL" == "" ];then
+    export STREAMURL=$(cat ${HOME}/.bashrc | grep STREAMURL | awk -F '=' '{print $2}')
+fi
+if [ "$OUTPUT_NAME" == "" ];then
+    export OUTPUT_NAME=$(cat ${HOME}/.bashrc | grep OUTPUT_NAME | awk -F '=' '{print $2}')
+fi
+if [ "$MPD_MUSIC_BASE" == "" ];then
+    export MPD_MUSIC_BASE=$(cat ${HOME}/.bashrc | grep MPD_MUSIC_BASE | awk -F '=' '{print $2}')
+    if [ "$MPD_MUSIC_BASE" == "" ];then
+        MPD_MUSIC_BASE="${HOME}/Music"
+    fi
 fi
 
 ##############################################################################
