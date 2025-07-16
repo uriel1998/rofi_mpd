@@ -14,6 +14,8 @@ This does not alter or change any existing parts of that installation; it builds
 
 I've incorporated a lot of my older work into here; for example, if you use `yadshow` from [this repository of mine](https://github.com/uriel1998/yolo-mpd), the cache directory structure is the same, so you can use a symlink between `${XDG_CACHE_HOME}/rofi` and `${XDG_CACHE_HOME}/yadshow` and have it work just fine.
 
+[![Video of the tool in action](https://img.youtube.com/vi/wMw6T6OhgR0/0.jpg)](https://www.youtube.com/watch?wMw6T6OhgR0)
+
 ## What's new/enhanced?
 
 * Cover art in display, with fallback to original images
