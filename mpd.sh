@@ -188,11 +188,12 @@ show_tools() {
     option_sub3="Add Artist"
     option_sub4="Add Genre"
     option_sub5="Nowtags"
+    option_sub6="Playlist"
     style='style-6.rasi'
     theme="$type/$style"
     
     prompt=$(cat "${ROFI_CACHE}/songinfo")
-    choice=$(echo -e "$option_sub1\n$option_sub2\n$option_sub3\n$option_sub4\n$option_sub5" | \
+    choice=$(echo -e "$option_sub1\n$option_sub2\n$option_sub3\n$option_sub4\n$option_sub5\n$option_sub6" | \
         rofi -theme-str "listview {columns: 2; lines: 1;}" \
                 -theme-str 'textbox-prompt-colon {str: "";}' \
                 -dmenu \
@@ -220,6 +221,25 @@ show_tools() {
     $option_sub5)
                 nowtrack=$("${HOME}"/.config/rofi/applets/bin/edit_current_mp3tags.sh);QT_STYLE_OVERRIDE=qt5ct-style puddletag "${nowtrack}"
         ;;
+    $option_sub6)
+                choice=$(mpc --host "$MPD_HOST" lsplaylists | \
+                rofi -theme-str "listview {columns: 2; lines: 1;}" \
+                -theme-str 'textbox-prompt-colon {str: "";}' \
+                -dmenu \
+                -p "${prompt}" \
+                -mesg "${mesg}" \
+                ${active}  \
+                -markup-rows \
+                -theme ${theme} )
+                notify-send "${choice}"
+                if [ "${choice}" != "" ];then
+                    mpc clear
+                    while IFS= read -r playlist; do
+                        mpc --host "$MPD_HOST" load "$playlist" 
+                        mpc --host "$MPD_HOST" play
+                    done <<< "$choice"
+                fi                
+        ;;        
     esac
     
     
